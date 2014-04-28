@@ -3,6 +3,18 @@
 
 import numpy as np
 
+"""
+github.com/stefantkeller
+
+Convenience class to work with error (aka uncertainty) attached
+
+It is
+c = f(a+-da,b+-db)
+=> dc = sqrt( (df/da)**2 * da**2 + (df/db)**2 * db**2 )
+
+each implemented operation + - * / ** returns a new instance.
+"""
+
 class errval(object):
     def __init__(self,val,err,printout='latex'):
         '''
@@ -19,6 +31,20 @@ class errval(object):
         return self.__val
     def err(self):
         return self.__err
+
+    def __str__(self):
+        '''
+        called by print
+        output depends on initialization
+        when two errvals are put together the result has the value of the left one
+        '''
+        if self.__printout == '+-':
+            return "{0} +- {1}".format(self.__val,self.__err)
+        if self.__printout == 'cp': # make it easier to copy paste...
+            return "errval({0},{1})".format(self.val(),self.err())
+        else: # default = latex
+            return "{0} \pm {1}".format(self.__val,self.__err)
+
     
     def __add__(self,other):
         if isinstance(other,errval):
@@ -109,16 +135,10 @@ class errval(object):
             raise TypeError, 'unsupported operand type(s) for -: errval with {0}'.format(type(other))
         return errval(nval, nerr, self.__printout)
     
-    def __str__(self):
-        '''
-        called by print
-        output depends on initialization
-        when two errvals are put together the result has the value of the left one
-        '''
-        if self.__printout == '+-':
-            return "{0} +- {1}".format(self.__val,self.__err)
-        else: # default = latex
-            return "{0} \pm {1}".format(self.__val,self.__err)
+    def __abs__(self):
+        return errval(abs(self.val()), self.err())
+    
+    
     
     
 def main():
@@ -169,6 +189,7 @@ def main():
     print 'exp: {0} \pm {1} \ngot: {2}\n---'.format(1,6,k0)
     print 'exp: {0} \pm {1} \ngot: {2}\n---'.format(2,np.log(2)*2*3,k1)
     print 'exp: {0} +- {1} \ngot: {2}\n---'.format(2,np.sqrt(16+(np.log(2)*2*3)**2),k2)
-    
+    print abs(c)
+
 
 if __name__ == '__main__': main()
