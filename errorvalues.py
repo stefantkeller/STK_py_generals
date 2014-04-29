@@ -62,6 +62,7 @@ class errval(object):
             self.__printout = change
         return self.__printout
 
+
     def __str__(self):
         '''
         called by print
@@ -175,6 +176,17 @@ class errval(object):
         return self**0.5
 
 
+'''
+convenience functions for dealing with lists containing errvals
+'''
+def values(errvallist):
+    return [ev.val() for ev in errvallist]
+def errors(errvallist):
+    return [ev.err() for ev in errvallist]
+def tuples(errvallist):
+    return zip(values(errvallist),errors(errvallist))
+    
+
 
 # ---------------------------------------------------------------------------------------
     
@@ -241,7 +253,14 @@ def main():
     print p1
     print '---'
     
-
+    abc = [a,b,c]
+    abcv, abce, abct = values(abc), errors(abc), tuples(abc)
+    print 'exp: {0}\ngot: {1}\n---'.format(f0,np.sum(abc))
+    print abcv
+    print abce
+    print zip(abcv,abce)
+    print abct
+    print '---'
 
 
 if __name__ == '__main__': main()
