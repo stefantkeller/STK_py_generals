@@ -4,7 +4,7 @@
 import numpy as np
 
 """
-github.com/stefantkeller
+https://github.com/stefantkeller/STK_py_generals
 
 Convenience class to work with error (aka uncertainty) attached
 
@@ -12,25 +12,42 @@ It is
 c = f(a+-da,b+-db)
 => dc = sqrt( (df/da)**2 * da**2 + (df/db)**2 * db**2 )
 
-each implemented operation + - * / ** returns a new instance.
+each implemented operation {+, -, *, /, **, abs()} returns a new instance.
 """
 
 class errval(object):
-    def __init__(self,val,err,printout='latex'):
+    def __init__(self,val,err=0,printout='latex'):
         '''
-        val = the value
+        val = the value (number or errval (see below))
         err = the corresponding error
         printout = what 'print' should look like
+
+        if you initiate with val=errval a copy of that input errval is provided
+        if you then want to change the printout value for that copy you have
+        two choices:
+            (1) a posteriori with .printout('mynewopt')
+            (2) by specifying the new option with a !bang:
+                cp = errval(orig,printout='mynewopt!')
         '''
-        self.__val = val
-        if err<0: raise ValueError, 'Cannot assign negative error'
-        else: self.__err = err
-        self.__printout = printout
+        if isinstance(val,errval): # return copy
+            self.__val = val.val()
+            self.__err = val.err()
+            self.__printout = val.printout()
+            if printout.endswith('!'): self.__printout = printout
+        else:
+            self.__val = val
+            if err<0: raise ValueError, 'Cannot assign negative error'
+            else: self.__err = err
+            self.__printout = printout
     
     def val(self):
         return self.__val
     def err(self):
         return self.__err
+    def printout(self,change=''):
+        if change!='':
+            self.__printout = change
+        return self.__printout
 
     def __str__(self):
         '''
@@ -136,7 +153,7 @@ class errval(object):
         return errval(nval, nerr, self.__printout)
     
     def __abs__(self):
-        return errval(abs(self.val()), self.err())
+        return errval(abs(self.val()), self.err(), self.printout())
     
     
     
@@ -189,7 +206,10 @@ def main():
     print 'exp: {0} \pm {1} \ngot: {2}\n---'.format(1,6,k0)
     print 'exp: {0} \pm {1} \ngot: {2}\n---'.format(2,np.log(2)*2*3,k1)
     print 'exp: {0} +- {1} \ngot: {2}\n---'.format(2,np.sqrt(16+(np.log(2)*2*3)**2),k2)
-    print abs(c)
+
+    m0 = errval(b,printout='latex!')
+    print 'exp: {0} != {1}\ngot: {2}'.format(id(m0),id(b),id(m0)!=id(b))
+    print 'exp: {0} \pm {1}\ngot: {2}'.format(b.val(),b.err(),m0)
 
 
 if __name__ == '__main__': main()
