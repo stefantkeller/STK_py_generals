@@ -31,14 +31,27 @@ class errval(object):
         '''
         if isinstance(val,errval): # return copy
             self.__val = val.val()
-            self.__err = val.err()
+            self.__assign_err(val.err())
             self.__printout = val.printout()
             if printout.endswith('!'): self.__printout = printout
-        else:
-            self.__val = val
-            if err<0: raise ValueError, 'Cannot assign negative error'
-            else: self.__err = err
+        elif ( isinstance(val,tuple) and len(val)==2
+               and isinstance(val[0],(int,float,long)) and isinstance(val[1],(int,float,long)) ):
+            self.__val = val[0]
+            self.__assign_err(val[1])
             self.__printout = printout
+        elif ( isinstance(val,tuple) and len(val)==3
+               and isinstance(val[0],(int,float,long)) and isinstance(val[1],(int,float,long))
+               and isinstance(val[2],str) ):
+            self.__val = val[0]
+            self.__assign_err(val[1])
+            self.__printout = val[2]
+        elif isinstance(val,(int,float,long)):
+            self.__val = val
+            self.__assign_err(err)
+            self.__printout = printout
+        else:
+            raise ValueError, 'Cannot assign input data'
+
     
     def val(self):
         return self.__val
@@ -62,6 +75,9 @@ class errval(object):
         else: # default = latex
             return "{0} \pm {1}".format(self.__val,self.__err)
 
+    def __assign_err(self,err):
+        if err<0: raise ValueError, 'Cannot assign negative error'
+        else: self.__err = err
     
     def __add__(self,other):
         if isinstance(other,errval):
@@ -155,8 +171,12 @@ class errval(object):
     def __abs__(self):
         return errval(abs(self.val()), self.err(), self.printout())
     
-    
-    
+    def sqrt(self):
+        return self**0.5
+
+
+
+# ---------------------------------------------------------------------------------------
     
 def main():
 #    z = errval(0,-1)
@@ -208,8 +228,20 @@ def main():
     print 'exp: {0} +- {1} \ngot: {2}\n---'.format(2,np.sqrt(16+(np.log(2)*2*3)**2),k2)
 
     m0 = errval(b,printout='latex!')
-    print 'exp: {0} != {1}\ngot: {2}'.format(id(m0),id(b),id(m0)!=id(b))
-    print 'exp: {0} \pm {1}\ngot: {2}'.format(b.val(),b.err(),m0)
+    print 'exp: {0} != {1}\ngot: {2}\n---'.format(id(m0),id(b),id(m0)!=id(b))
+    print 'exp: {0} \pm {1}\ngot: {2}\n---'.format(b.val(),b.err(),m0)
+
+    n0 = np.sqrt(m0)
+    print 'exp: {0} \pm {1} \ngot: {2}\n---'.format(np.sqrt(2),4/(2*np.sqrt(2)),n0)
+
+    p0, p1 = errval((1,2)), errval((1,2,'+-'))
+#    p2 = errval((1,2,3)) # error because input nonsense
+#    p3 = errval([]) # also.
+    print p0
+    print p1
+    print '---'
+    
+
 
 
 if __name__ == '__main__': main()
