@@ -175,6 +175,11 @@ class errval(object):
     def sqrt(self):
         return self**0.5
 
+    def round(self,n):
+        # returns new instance
+        return errval(np.around(self.val(),n),np.around(self.err(),n),self.printout())
+
+
 
 '''
 convenience functions for dealing with lists containing errvals
