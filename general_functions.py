@@ -102,6 +102,11 @@ def secant(f,x0,x1,n):
     return x1
 
 def dydx(y,dx):
+    # careful: if you don't actually need a function but only
+    # an array corresponding to a derivative, then use just
+    # (y[:-1]-y[1:])/dx !
+    # otherwise this function will potentially take forever
+    # to execute!
     return lambda i: ((y[:-1]-y[1:])/dx)[i]
 
 

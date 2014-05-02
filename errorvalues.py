@@ -175,7 +175,7 @@ class errval(object):
     def sqrt(self):
         return self**0.5
 
-    def round(self,n):
+    def round(self,n=0):
         # returns new instance
         return errval(np.around(self.val(),n),np.around(self.err(),n),self.printout())
 
