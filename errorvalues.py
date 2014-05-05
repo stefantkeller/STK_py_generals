@@ -197,12 +197,13 @@ def wmean(errvallist):
     sigma_<x>^2 = sum(1/sigma_i^2)
     <x> = sum(x_i/sigma_i^2)/sigma_<x>^2
     '''
+    printmode = errvallist[0].printout()
     vals = values(errvallist)
     errs = errors(errvallist)
     N = len(errvallist)
     sig_x = np.sum([1.0/si**2 for si in errs])
     sum_x = np.sum([vals[i]*1.0/errs[i]**2 for i in range(N)])
-    return errval(sum_x*1.0/sig_x,sig_x)
+    return errval(sum_x*1.0/sig_x,sig_x,printmode)
     
 
 
