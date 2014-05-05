@@ -190,6 +190,19 @@ def errors(errvallist):
     return [ev.err() for ev in errvallist]
 def tuples(errvallist):
     return zip(values(errvallist),errors(errvallist))
+def wmean(errvallist):
+    '''
+    weighted mean
+
+    sigma_<x>^2 = sum(1/sigma_i^2)
+    <x> = sum(x_i/sigma_i^2)/sigma_<x>^2
+    '''
+    vals = values(errvallist)
+    errs = errors(errvallist)
+    N = len(errvallist)
+    sig_x = np.sum([1.0/si**2 for si in errs])
+    sum_x = np.sum([vals[i]*1.0/errs[i]**2 for i in range(N)])
+    return errval(sum_x*1.0/sig_x,sig_x)
     
 
 
@@ -266,6 +279,11 @@ def main():
     print zip(abcv,abce)
     print abct
     print '---'
+
+    q0, q1 = errval(100,10), errval(1,1)
+    r0, r1 = errval(40,2), errval(44,4)
+    print 'exp: {0}\ngot: {1}\n---'.format(errval(2,1),wmean([q0,q1]))
+    print 'exp: {0}\ngot: {1}\n---'.format(errval(40.8,5.0/16),wmean([r0,r1]))
 
 
 if __name__ == '__main__': main()
