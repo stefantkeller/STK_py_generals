@@ -203,7 +203,7 @@ def wmean(errvallist):
     N = len(errvallist)
     sig_x = np.sum([1.0/si**2 for si in errs])
     sum_x = np.sum([vals[i]*1.0/errs[i]**2 for i in range(N)])
-    return errval(sum_x*1.0/sig_x,sig_x,printmode)
+    return errval(sum_x*1.0/sig_x,np.sqrt(sig_x),printmode)
     
 
 
@@ -284,7 +284,7 @@ def main():
     q0, q1 = errval(100,10), errval(1,1)
     r0, r1 = errval(40,2), errval(44,4)
     print 'exp: {0}\ngot: {1}\n---'.format(errval(2,1),wmean([q0,q1]))
-    print 'exp: {0}\ngot: {1}\n---'.format(errval(40.8,5.0/16),wmean([r0,r1]))
+    print 'exp: {0}\ngot: {1}\n---'.format(errval(40.8,np.sqrt(5.0/16)),wmean([r0,r1]))
 
 
 if __name__ == '__main__': main()
