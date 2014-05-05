@@ -73,6 +73,8 @@ class errval(object):
             return "{0} +- {1}".format(self.__val,self.__err)
         if self.__printout == 'cp': # make it easier to copy paste...
             return "errval({0},{1})".format(self.val(),self.err())
+        if self.__printout == 'cpp': # make it easier to copy paste...
+            return "errval({0},{1},errvalmode)".format(self.val(),self.err())
         else: # default = latex
             return "{0} \pm {1}".format(self.__val,self.__err)
 
@@ -203,7 +205,7 @@ def wmean(errvallist):
     N = len(errvallist)
     sig_x = np.sum([1.0/si**2 for si in errs])
     sum_x = np.sum([vals[i]*1.0/errs[i]**2 for i in range(N)])
-    return errval(sum_x*1.0/sig_x,np.sqrt(sig_x),printmode)
+    return errval(sum_x*1.0/sig_x,1.0/np.sqrt(sig_x),printmode)
     
 
 
@@ -282,9 +284,9 @@ def main():
     print '---'
 
     q0, q1 = errval(100,10), errval(1,1)
-    r0, r1 = errval(40,2), errval(44,4)
+    r0, r1 = errval(3.11,0.02), errval(3.13,0.01)
     print 'exp: {0}\ngot: {1}\n---'.format(errval(2,1),wmean([q0,q1]))
-    print 'exp: {0}\ngot: {1}\n---'.format(errval(40.8,np.sqrt(5.0/16)),wmean([r0,r1]))
+    print 'exp: {0}\ngot: {1}\n---'.format(errval(3.126,0.009),wmean([r0,r1])) # [R. Barlow, Statistics, John Wiley & Sons Ltd. (1989)]
 
 
 if __name__ == '__main__': main()
