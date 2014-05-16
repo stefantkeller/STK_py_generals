@@ -109,7 +109,14 @@ def dydx(y,dx):
     # to execute!
     return lambda i: ((y[:-1]-y[1:])/dx)[i]
 
-
+def scaled(data, mode=None):
+    data = np.array(data) # "list - n" throws error: we cannot calculate with lists; use np!
+    if mode=='01':
+        mx, mn = np.max(data), np.min(data)
+        data = (data-mn)/(mx-mn)
+    elif mode=='+-1':
+        data = 2.0*scaled(data,mode='01') - 1
+    return data
 
 # ===============================================================
 def main():
