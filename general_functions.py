@@ -86,6 +86,7 @@ def secant(f,x0,x1,n):
     """
     f to be (e.g. lambda) function
     returns x_ for which f(x_)==0
+    terminates after at most n trys
     
     f(x1) = f(x0) + (x1-x0)f'(x0)
     f'(x0) = ( f(x1)-f(x0) )/( x1-x0 )
@@ -117,6 +118,18 @@ def scaled(data, mode=None):
     elif mode=='+-1':
         data = 2.0*scaled(data,mode='01') - 1
     return data
+
+def find_index(array,value,low=None,high=None):
+    '''
+    in an array find the index whose corresponding value matches best with requested value
+    returns first best match within given interval [low, high]
+    '''
+    if low==None: low=0
+    if high==None: high=len(array)-1
+
+    f = lambda x: array[int(x)]-value
+    index = secant(f,low,high,10)
+    return int(index)
 
 # ===============================================================
 def main():
