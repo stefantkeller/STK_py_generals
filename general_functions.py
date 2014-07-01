@@ -131,6 +131,33 @@ def find_index(array,value,low=None,high=None):
     index = secant(f,low,high,10)
     return int(index)
 
+def llist(instr):
+    '''
+    returns a long, flat list whose entries are of value a with multiplicity b
+
+    example 1:
+    instr = [(a1,b1),(a2,b2),...]
+    out = [a1,a1,a1,...,a2,a2,...]
+            \- b1 -/    \- b2 -/
+    
+    example 2:
+    what_i_want = [(1,2), # 1,1
+                   (2,3), # 2,2,2
+                   (1,5)] # 1,1,1,1,1
+    llist(what_i_want)
+    >>> [1,1,2,2,2,1,1,1,1,1]
+
+    example 3:
+    in MATLAB it is:
+    a = [0*ones(1,250),8*ones(1,1000),6.5*ones(1,1000)]
+    with llist it is:
+    a = llist([(0,250),(8,1000),(6.5,1000)])
+    '''
+    out = []
+    for i in instr:
+        out += [i[0]]*i[1]
+    return out
+
 # ===============================================================
 def main():
     pass
