@@ -122,6 +122,7 @@ def scaled(data, mode=None):
 def find_index(array,value,low=None,high=None):
     '''
     in an array find the index whose corresponding value matches best with requested value
+    works with 
     returns first best match within given interval [low, high]
     '''
     if low==None: low=0
@@ -131,9 +132,39 @@ def find_index(array,value,low=None,high=None):
     index = secant(f,low,high,10)
     return int(index)
 
-def llist(instr):
+def find_index_iter(array,value,low=None,high=None):
     '''
-    returns a long, flat list whose entries are of value a with multiplicity b
+    same as find_index() but the value has to be exact
+    [low,high] constrains search if approx position in the array is known already
+
+    example:
+    a = [1,2,3,4,5,6,7,8,9,0]
+    it = find_index_iter(a,4)
+    print it, (it==3)
+    it = find_index_iter(a,8,high=6)
+    print it, (it==None)
+    it = find_index_iter(a,8,high=7)
+    print it, (it==7)
+    it = find_index_iter(a,0,low=7)
+    print it, (it==9)
+    '''
+    if low==None: low=0
+    if high==None: high=len(array)-1
+
+    it = low
+    for search in xrange(high-low+1):
+    # one more iteration than range: to get last iteration as well.
+    # if the value is found, this loop should break
+    # if it doesn't the last +=1 is executed, which we can detect.
+        if array[it]==value: break
+        it += 1
+    if it==high+1: it=None # not found; loop didn't break
+    return it
+
+def llist(instr,outtype=list):
+    '''
+    returns a long, flat list of type outtype,
+    whose entries are of value a with multiplicity b
 
     example 1:
     instr = [(a1,b1),(a2,b2),...]
@@ -155,8 +186,11 @@ def llist(instr):
     '''
     out = []
     for i in instr:
-        out += [i[0]]*i[1]
-    return out
+        if len(i)==2 and isinstance(i[1],int):
+            # note for when bored: benchmark the following
+            out += [i[0]]*i[1]
+            #out += [i[0] for k in xrange(i[1)]
+    return outtype(out)
 
 # ===============================================================
 def main():
