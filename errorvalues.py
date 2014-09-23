@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import matplotlib.pyplot as plt
+from general_functions import find_index, find_index_iter
 
 """
 https://github.com/stefantkeller/STK_py_generals
@@ -56,6 +58,10 @@ class errval(object):
     def val(self):
         return self.__val
     def err(self):
+        return self.__err
+    def v(self):
+        return self.__val
+    def e(self):
         return self.__err
     def printout(self,change=''):
         if change!='':
@@ -293,6 +299,36 @@ def errors(errvallist):
 def tuples(errvallist):
     return zip(values(errvallist),errors(errvallist))
 
+def find_fooval(errvallist,foo,index=False):
+    '''
+    Find value in list closes to foo(list)
+    e.g. foo=max returns the maximum value in the list
+    caution: this might not terminate
+    (unclear why, open question over at general_functions)
+    if not just 'closet' but exact value looked for,
+    pick find_fooval_iter
+    '''
+    v = values(errvallist)
+    i = find_index(v,foo(v))
+    if index: return errvallist[i], i
+    else: return errvallist[i]
+def find_fooval_iter(errvallist,foo,index=False):
+    '''
+    Find value in list corresponding exactly to foo(list)
+    e.g. foo=max returns the maximum value in the list
+    '''
+    v = values(errvallist)
+    i = find_index_iter(v,foo(v))
+    if index: return errvallist[i], i
+    else: return errvallist[i]
+
+def max_(errvallist):
+    # there is only one value,
+    # and that one is exact, so go with _iter:
+    return find_fooval_iter(errvallist,max,True)
+def min_(errvallist):
+    return find_fooval_iter(errvallist,min,True)
+
 def wmean(errvallist):
     '''
     weighted mean
@@ -310,8 +346,66 @@ def wmean(errvallist):
     sum_x = np.sum([vals[i]*1.0/errs[i]**2 for i in range(N)])
     return errval(sum_x*1.0/sig_x,1.0/np.sqrt(sig_x),printmode)
     
+def interp(v,evxy0,evxy1):
+    '''
+    linear interpolation between two points
+    evxy0 (evxy1) is expected to be a tuple
+    representing the x and y value of the
+    point to the left (right) of value v
+    otherwise it's an extrapolation - proceed with caution!
 
+    Basic idea (for values between v \in [0,1]):
+        y = y0 + v*(y1-y0)
+    But v is not bound to [0,1], so we have to renormalize:
+        v' = (v-x0)/(x1-x0).
+    This makes it implicitly clear that we expect x1>x0,
+    so, order your input properly!
+    We end up:
+        y = y0 + (v-x0)/(x1-x0)*(y1-y0).
+    '''
+    if not isinstance(evxy0,tuple) or not isinstance(evxy1,tuple):
+        raise TypeError,\
+             'Boundary required as tuple, {0} and {1} given'.format(
+                type(evxy0),type(evxy1))
+    # if input can be handled with pre-existing functions:
+    if not isinstance(evxy0[0],errval) and \
+        not isinstance(evxy0[1],errval) and \
+        not isinstance(evxy1[0],errval) and \
+        not isinstance(evxy1[1],errval):
+        return np.interp(v,evxy0,evxy1)
+    # ok, at least one of the inputs is errval; worth the time:
+    # make sure every entry is indeed errval
+    # (because lazy, the x-values don't need to have an error,
+    # in fact, if they do this error will be lost)
+    x0, y0 = errval(evxy0[0]), errval(evxy0[1])
+    x1, y1 = errval(evxy1[0]), errval(evxy1[1])
 
+    scaling = float(v-x0.v())/(x1.v()-x0.v())
+    y = y0.v() + scaling*(y1.v()-y0.v())
+    ye = y0.e()-scaling*abs(y1.e()-y0.e())
+    #scalingy = (y-y0.v())/(y1.v()-y0.v())
+    #xe = scalingy*abs(x1.e()-x0.e())
+    return errval(y,ye)
+
+def interplist(v,evx,evy):
+    '''
+    evx must be an ordered (errval,)list or a numpy.ndarray
+    evy must be a errvallist
+    '''
+    if not isinstance(evx,(list,tuple,errvallist,np.ndarray)):
+        raise TypeError, 'evx is of unexpected type: {0}'.format(
+                type(evx))
+    if not isinstance(evy,errvallist):
+        raise TypeError, 'This function is for errvallists, try np.interp'
+    if isinstance(evx,errvallist):
+        evx = evx.v() # errval has only one-dimensional error
+    i0 = np.sum([e<v for e in evx])
+    if i0==0: raise ValueError,\
+                'Value below interpolation values: {0}<{1}'.format(
+                    i0,evx[0])
+    xy0 = (evx[i0-1],evy[i0-1])
+    xy1 = (evx[i0],evy[i0])
+    return interp(v,xy0,xy1)
 # ---------------------------------------------------------------------------------------
     
 def main():
@@ -386,12 +480,11 @@ def main():
     print abct
     print '---'
     abc_ = errvallist([a,b,c])
-    print abc_
-    print values(abc_)
-    print abc_.v()
-    print abc_.val()
-    print abc_.errs()
+    print 'Remember: {0}'.format(abc_)
+    print 'exp: {0}\ngot: {1}\n---'.format(values(abc),abc_.v())
+    print 'exp: {0}\ngot: {1}\n---'.format(errors(abc),abc_.errs())
     print 'exp: {0}\ngot: {1}\n---'.format(f0,np.sum(abc_))
+    print 'exp: {0},{1}\ngot: {2},{3}\n---'.format(c,2,min_(abc_)[0],min_(abc_)[1])
 
     q0, q1 = errval(100,10), errval(1,1)
     r0, r1 = errval(3.11,0.02), errval(3.13,0.01)
@@ -399,6 +492,22 @@ def main():
     print 'exp: {0}\ngot: {1}\n---'.format(errval(3.126,0.009),wmean([r0,r1])) # [R. Barlow, Statistics, John Wiley & Sons Ltd. (1989)]
     print 'exp: {0}\ngot: {1}\n---'.format(errval(3.126,0.009),wmean(errvallist([r0,r1])))
     print 'exp: {0}\ngot: {1}\n---'.format(errval(50.5,0.5*np.sqrt(101)),np.mean(errvallist([q0,q1])))
+
+    print 'Interpolate:'
+    s0,t0 = 1,2
+    try: print interp(1.5,s0,t0)
+    except TypeError: print 'Non tuple input caught. (Good!)'
+    s1,t1 = (1,2),(2,2)
+    print 'exp: {0}\ngot: {1}\n---'.format(2,interp(1.5,s1,t1))
+    s2,t2 = (1,errval(2,1)),(2,errval(1,0))
+    print 'exp: {0}\ngot: {1}\n---'.format(errval(1.5,0.5),interp(1.5,s2,t2))
+    s3,t3 = (1,errval(3,1)),(3,(errval(1,3)))
+    t3_ = interp(2,s3,t3)
+    print 'exp: {0}\ngot: {1}\n---'.format(errval(2,2),t3_)
+    s4,t4 = [1,3], errvallist([errval(3,1),errval(1,3)])
+    t4_ = interplist(2,s4,t4)
+    print 'exp: {0}\ngot: {1}\n---'.format(errval(2,2),t4_)
+    
 
 
 if __name__ == '__main__': main()
