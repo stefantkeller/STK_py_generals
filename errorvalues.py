@@ -188,6 +188,14 @@ class errval(object):
         return errval(np.around(self.val(),n),np.around(self.err(),n),self.printout())
 
 
+def stderrval(li):
+    # errval with standard error from a list
+    # standard error being the unbiased std divided by n
+    return errval(np.mean(li),\
+                   1.0/np.sqrt(len(li))*np.std(li,ddof=1))
+
+#---------------------------------------------------------------------------------------
+
 class errvallist(list):
     def __init__(self,vals,errs=0,printout='latex'):
         if isinstance(vals,errvallist):
@@ -288,6 +296,15 @@ class errvallist(list):
     def errors(self): return self.e()
 
 
+def stderrvallist(li):
+    # errvallist with standard errors from a n-dim list
+    # standard error being the unbiased std divided by n
+    # input li = [[1,2,3],
+    #             [2,3,4]]
+    # outp res = [1.5+-0.5,2.5+-0.5,3.5+-0.5]
+    return errvallist(np.mean(li,axis=0),\
+                       1.0/np.sqrt(len(li))*np.std(li,axis=0,ddof=1))
+
 '''
 functions for dealing with lists containing errvals
 not necessarily errvallists
@@ -382,7 +399,7 @@ def interp(v,evxy0,evxy1):
 
     scaling = float(v-x0.v())/(x1.v()-x0.v())
     y = y0.v() + scaling*(y1.v()-y0.v())
-    ye = y0.e()-scaling*abs(y1.e()-y0.e())
+    ye = y0.e() + scaling*abs(y1.e()-y0.e())
     #scalingy = (y-y0.v())/(y1.v()-y0.v())
     #xe = scalingy*abs(x1.e()-x0.e())
     return errval(y,ye)
@@ -399,7 +416,7 @@ def interplist(v,evx,evy):
         raise TypeError, 'This function is for errvallists, try np.interp'
     if isinstance(evx,errvallist):
         evx = evx.v() # errval has only one-dimensional error
-    i0 = np.sum([e<v for e in evx])
+    i0 = np.sum([e<=v for e in evx])
     if i0==0: raise ValueError,\
                 'Value below interpolation values: {0}<{1}'.format(
                     i0,evx[0])
@@ -507,6 +524,13 @@ def main():
     s4,t4 = [1,3], errvallist([errval(3,1),errval(1,3)])
     t4_ = interplist(2,s4,t4)
     print 'exp: {0}\ngot: {1}\n---'.format(errval(2,2),t4_)
+    
+    print 'exp: {0}\ngot: {1}\n---'.format(errval(0.5,0.5),
+                                            stderrval([0,1]))
+    u = [[1,2,3],[2,3,4]]
+    u0 = stderrvallist(u)
+    v = errvallist([1.5,2.5,3.5],[0.5,0.5,0.5])
+    print 'exp: {0}\ngot: {1}\n---'.format(v,u0)
     
 
 
