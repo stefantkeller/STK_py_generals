@@ -3,8 +3,10 @@
 
 import numpy as np
 
+from itertools import izip as zip, count # izip for maximum efficiency: http://stackoverflow.com/questions/176918/finding-the-index-of-an-item-given-a-list-containing-it-in-python
+
 def create_geometric_series( start, end, n ):
-    start, end, n = float(start), float(end), float(n) # sanitize input
+    start, end, n = float(start), float(end), int(n) # sanitize input
     if n > 1:
         series = [ start * ( (end/start) ** (float(j)/(n-1)) ) for j in range(n) ]
     else:
@@ -19,7 +21,7 @@ def permute_list(l, copy=False):
     """
     if isinstance(l, list):
         if copy: l = list(l) # work only with copy of input (hence we can use the same name...)
-        for j in range(len(list)):
+        for j in range(len(l)):
             k = np.random.randint(j, len(l)-1)
             l[j], l[k] = l[k], l[j]
         return l
@@ -191,6 +193,30 @@ def llist(instr,outtype=list):
             out += [i[0]]*i[1]
             #out += [i[0] for k in xrange(i[1)]
     return outtype(out)
+
+def split2dict(strng,el_sep=';',en_sep='='):
+    # 'a=1;b=2;c=3' -> {'a': '1', 'c': '3', 'b': '2'}
+    # strng = 'a=1;b=2;c=3'
+    # el_sep: element ('a=1',...) separator, e.g. ';'
+    # en_sep: entry ('a'='1',...) separator, e.g. '='
+    el = strng.split(el_sep)
+    splt = lambda x: x.split(en_sep)
+    try:
+        return dict( (e0,e1) for e0,e1 in map( splt, el ) )
+    except ValueError, e:
+        print strng
+        raise ValueError, e
+        
+
+def find_random_duplicates(input):
+    # input = [10,11,12,13,14,13,12,10,11,11,12,13,14,10,14]
+    # (indices[ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14])
+    # return: {10: [0, 7, 13], 11: [1, 8, 9], 12: [2, 6, 10], 13: [3, 5, 11], 14: [4, 12, 14]}
+    #http://stackoverflow.com/questions/176918/finding-the-index-of-an-item-given-a-list-containing-it-in-python
+    #http://stackoverflow.com/questions/479897/how-do-you-remove-duplicates-from-a-list-in-python-if-the-item-order-is-not-impo
+    deduplicated = sorted(set(input))
+    indexlist = [[i for i, j in zip(count(), input) if j == k] for k in deduplicated]
+    return dict((e0,e1) for e0,e1 in zip(deduplicated,indexlist))
 
 # ===============================================================
 def main():

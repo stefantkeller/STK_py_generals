@@ -166,7 +166,7 @@ class errval(object):
             nval = self.val() ** other
             nerr = abs( other * self.val()**(other-1) * self.err() )
         else:
-            raise TypeError, 'unsupported operand type(s) for -: errval with {0}'.format(type(other))
+            raise TypeError, 'unsupported operand type(s) for **: errval with {0}'.format(type(other))
         return errval(nval, nerr, self.__printout)
     def __rpow__(self,other):
         if isinstance(other,(int,float,long)):
@@ -174,7 +174,7 @@ class errval(object):
             nval = other ** self.val()
             nerr = abs( np.log(other) * other**self.val() * self.err() )
         else:
-            raise TypeError, 'unsupported operand type(s) for -: errval with {0}'.format(type(other))
+            raise TypeError, 'unsupported operand type(s) for **: errval with {0}'.format(type(other))
         return errval(nval, nerr, self.__printout)
     
     def __abs__(self):
@@ -237,7 +237,7 @@ class errvallist(list):
     def __add__(self,other):
         if isinstance(other,(errvallist,list)) and len(self)==len(other):
              errvall = [self[j]+other[j] for j in xrange(len(self))]
-        elif isinstance(other,(int,float,long)):
+        elif isinstance(other,(int,float,long,errval)):
             errvall = [s+other for s in self]
         else:
             raise TypeError, 'unsupported operand type(s) for +: errval with {0}'.format(type(other))
@@ -248,7 +248,7 @@ class errvallist(list):
     def __sub__(self,other):
         if isinstance(other,(errvallist,list)) and len(self)==len(other):
             errvall = [self[j]-other[j] for j in xrange(len(self))]
-        elif isinstance(other,(int,float,long)):
+        elif isinstance(other,(int,float,long,errval)):
             errvall = [s-other for s in self]
         else:
             raise TypeError, 'unsupported operand type(s) for -: errval with {0}'.format(type(other))
@@ -259,7 +259,7 @@ class errvallist(list):
     def __mul__(self,other):
         if isinstance(other,(errvallist,list)) and len(self)==len(other):
             errvall = [self[j]*other[j] for j in xrange(len(self))]
-        elif isinstance(other,(int,float,long)):
+        elif isinstance(other,(int,float,long,errval)):
             errvall = [s*other for s in self]
         else:
             raise TypeError, 'unsupported operand type(s) for *: errval with {0}'.format(type(other))
@@ -270,7 +270,7 @@ class errvallist(list):
     def __div__(self,other):
         if isinstance(other,(errvallist,list)) and len(self)==len(other):
             errvall = [self[j]/other[j] for j in xrange(len(self))]
-        elif isinstance(other,(int,float,long)):
+        elif isinstance(other,(int,float,long,errval)):
             errvall = [s/other for s in self]
         else:
             raise TypeError, 'unsupported operand type(s) for /: errval with {0}'.format(type(other))
@@ -339,12 +339,12 @@ def find_fooval_iter(errvallist,foo,index=False):
     if index: return errvallist[i], i
     else: return errvallist[i]
 
-def max_(errvallist):
+def max_(errvallist,index=True):
     # there is only one value,
     # and that one is exact, so go with _iter:
-    return find_fooval_iter(errvallist,max,True)
-def min_(errvallist):
-    return find_fooval_iter(errvallist,min,True)
+    return find_fooval_iter(errvallist,max,index)
+def min_(errvallist,index=True):
+    return find_fooval_iter(errvallist,min,index)
 
 def wmean(errvallist):
     '''
