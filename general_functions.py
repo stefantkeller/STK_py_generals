@@ -194,18 +194,29 @@ def llist(instr,outtype=list):
             #out += [i[0] for k in xrange(i[1)]
     return outtype(out)
 
-def split2dict(strng,el_sep=';',en_sep='='):
+def split2dict(strng,el_sep=';',en_sep='=',ignore_wrong_entries=True):
     # 'a=1;b=2;c=3' -> {'a': '1', 'c': '3', 'b': '2'}
     # strng = 'a=1;b=2;c=3'
     # el_sep: element ('a=1',...) separator, e.g. ';'
     # en_sep: entry ('a'='1',...) separator, e.g. '='
+    # if not ignore_wrong_entries:
+    #   string whose parts doesn't fit above described pattern raises an error
+    #   e.g. 'a=1;without equal sign;valid=True' raises a ValueError
+    # if ignore_wrong_entries:
+    #   these ValueErrors are ignored (pass)
     el = strng.split(el_sep)
     splt = lambda x: x.split(en_sep)
-    try:
-        return dict( (e0,e1) for e0,e1 in map( splt, el ) )
-    except ValueError, e:
-        print strng
-        raise ValueError, e
+    retdict = {} # return dict( (e0,e1) for e0,e1 in map( splt, el ) )
+    for e in el:
+        try:
+            e0,e1 = splt(e)
+            retdict[e0]=e1
+        except ValueError, e:
+            if ignore_wrong_entries: pass
+            else:
+                print strng
+                raise ValueError, e
+    return retdict
         
 
 def find_random_duplicates(input):
