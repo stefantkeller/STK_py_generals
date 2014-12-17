@@ -355,9 +355,9 @@ def wmean(errvallist):
     '''
     printmode = errvallist[0].printout()
     vals = values(errvallist)
-    print vals
+    #print vals
     errs = errors(errvallist)
-    print errs
+    #print errs
     N = len(errvallist)
     sig_x = np.sum([1.0/si**2 for si in errs])
     sum_x = np.sum([vals[i]*1.0/errs[i]**2 for i in range(N)])
