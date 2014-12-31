@@ -163,6 +163,14 @@ def find_index_iter(array,value,low=None,high=None):
     if it==high+1: it=None # not found; loop didn't break
     return it
 
+def find_closest_index(L,value):
+    # find closest >= value (if there is an entry closer but below, it is ignored)
+    # L must be sorted in ascending order (i.e. from low to high)
+    idx = L.searchsorted(value)
+    idx = np.min([np.max([idx,0]), len(L)-1]) # or: np.clip(idx, 0, len(L)-1)
+    return idx
+
+
 def llist(instr,outtype=list):
     '''
     returns a long, flat list of type outtype,
